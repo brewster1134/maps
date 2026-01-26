@@ -1,0 +1,30 @@
+{
+  "mjolnir": {
+    "tile_dir": "/data/valhalla",
+    "admin": "/data/valhalla/admin.sqlite",
+    "timezone": "/data/valhalla/tz_world.sqlite",
+    "tile_extract": "/data/valhalla/tiles.tar"
+  },
+  "httpd": {
+    "service": {
+      "listen": "tcp://*:8002",
+      "loopback": "ipc:///tmp/loopback",
+      "interrupt": "ipc:///tmp/interrupt"
+    }
+  },
+  "loki": {
+    "actions": ["route", "locate", "sources_to_targets", "optimized_route", "isochrone", "trace_route", "trace_attributes"],
+    "service_defaults": {
+      "minimum_reachability": 50,
+      "radius": 0,
+      "search_cutoff": 35000,
+      "node_snap_tolerance": 5,
+      "street_side_tolerance": 5,
+      "heading_tolerance": 60
+    }
+  },
+  "service_limits": {
+    "auto": { "max_distance": 5000000.0, "max_locations": 20, "max_matrix_distance": 400000.0, "max_matrix_locations": 50 },
+    "pedestrian": { "max_distance": 250000.0, "max_locations": 50, "max_matrix_distance": 200000.0, "max_matrix_locations": 50 }
+  }
+}
