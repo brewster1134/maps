@@ -53,5 +53,20 @@ services:
       - '8080:80'
     restart: unless-stopped
 
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: osm-nominatim
+    volumes:
+      - ./data/pbf:/nominatim/data
+      - nominatim-db:/var/lib/postgresql/14/main
+    environment:
+      - PBF_PATH=/nominatim/data/california-latest.osm.pbf
+      - NOMINATIM_PASSWORD=very_secure_password
+    ports:
+      - '8001:8080'
+    restart: unless-stopped
+    shm_size: 2gb
+
 volumes:
   valhalla-tiles:
+  nominatim-db:

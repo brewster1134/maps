@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const NOMINATIM_URL = process.env.NOMINATIM_URL || 'http://nominatim:8080';
 const VROOM_URL = process.env.VROOM_URL || 'http://localhost:3000';
 const VALHALLA_URL = process.env.VALHALLA_URL || 'http://localhost:8002';
 const POI_FILE = '/data/pois/pois.json';
@@ -146,19 +147,13 @@ app.post('/api/optimize-trip', async (req, res) => {
 app.get('/api/geocode', async (req, res) => {
   try {
     const { query } = req.query;
-    const response = await axios.get(
-      `https://nominatim.openstreetmap.org/search`,
-      {
-        params: {
-          q: query,
-          format: 'json',
-          limit: 5,
-        },
-        headers: {
-          'User-Agent': 'maps/1.0',
-        },
+    const response = await axios.get(`${NOMINATIM_URL}/search`, {
+      params: {
+        q: query,
+        format: 'json',
+        limit: 10,
       },
-    );
+    });
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Geocoding failed' });
