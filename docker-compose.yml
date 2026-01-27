@@ -10,48 +10,47 @@ services:
     environment:
       - BUILD_TILES=true
     restart: unless-stopped
+    networks:
+      osm-network:
+        aliases:
+          - valhalla
 
   vroom:
-    build: ./vroom
+    image: ghcr.io/vroom-project/vroom-docker:latest
     container_name: osm-vroom
     depends_on:
       - valhalla
-    environment:
-      - VALHALLA_URL=http://valhalla:8002
     ports:
       - '3000:3000'
     restart: unless-stopped
+    networks:
+      osm-network:
+        aliases:
+          - vroom
+    volumes:
+      - ./vroom/config.yml:/conf/config.yml:ro
 
   backend:
     build: ./backend
     container_name: osm-backend
     depends_on:
       - vroom
+      - valhalla
+    links:
+      - valhalla:valhalla
+      - vroom:vroom
+      - nominatim:nominatim
     environment:
       - VROOM_URL=http://vroom:3000
       - VALHALLA_URL=http://valhalla:8002
+      - NOMINATIM_URL=http://nominatim:8080
     volumes:
       - ./data/pois:/data/pois
     ports:
       - '3001:3001'
     restart: unless-stopped
-
-  frontend:
-    build: ./frontend
-    container_name: osm-frontend
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  nginx:
-    build: ./nginx
-    container_name: osm-nginx
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - '8080:80'
-    restart: unless-stopped
+    networks:
+      - osm-network
 
   nominatim:
     image: mediagis/nominatim:4.4
@@ -66,7 +65,36 @@ services:
       - '8001:8080'
     restart: unless-stopped
     shm_size: 2gb
+    networks:
+      osm-network:
+        aliases:
+          - nominatim
+
+  frontend:
+    build: ./frontend
+    container_name: osm-frontend
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - osm-network
+
+  nginx:
+    build: ./nginx
+    container_name: osm-nginx
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - '8080:80'
+    restart: unless-stopped
+    networks:
+      - osm-network
 
 volumes:
   valhalla-tiles:
   nominatim-db:
+
+networks:
+  osm-network:
+    driver: bridge

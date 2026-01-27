@@ -59,6 +59,40 @@ function App() {
   const debouncedOriginSearch = useDebounce(originSearch, 300);
   const debouncedDestinationSearch = useDebounce(destinationSearch, 300);
   const debouncedPoiSearch = useDebounce(poiSearch, 300);
+  const [matrixStatus, setMatrixStatus] = useState(null);
+  const [buildingMatrix, setBuildingMatrix] = useState(false);
+
+  // Add this function after loadPois
+  const loadMatrixStatus = async () => {
+    const res = await fetch(`${API_URL}/matrix-status`);
+    const data = await res.json();
+    setMatrixStatus(data);
+  };
+
+  // Add this function
+  const buildMatrix = async () => {
+    setBuildingMatrix(true);
+    const res = await fetch(`${API_URL}/build-matrix`, { method: 'POST' });
+    const data = await res.json();
+    alert(data.message);
+
+    // Poll for status updates
+    const interval = setInterval(async () => {
+      await loadMatrixStatus();
+    }, 5000);
+
+    // Stop polling after 30 minutes
+    setTimeout(() => {
+      clearInterval(interval);
+      setBuildingMatrix(false);
+    }, 1800000);
+  };
+
+  // Update useEffect to load matrix status
+  useEffect(() => {
+    loadPois();
+    loadMatrixStatus();
+  }, []);
 
   useEffect(() => {
     loadPois();
@@ -90,6 +124,23 @@ function App() {
       setPoiResults([]);
     }
   }, [debouncedPoiSearch]);
+
+  // Close autocomplete when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !event.target.closest('input') &&
+        !event.target.closest('[data-autocomplete]')
+      ) {
+        setShowOriginAutocomplete(false);
+        setShowDestinationAutocomplete(false);
+        setShowPoiAutocomplete(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const loadPois = async () => {
     const res = await fetch(`${API_URL}/pois`);
@@ -190,6 +241,8 @@ function App() {
     }
 
     setLoading(true);
+    setRoute(null); // Clear old route
+
     try {
       const res = await fetch(`${API_URL}/optimize-trip`, {
         method: 'POST',
@@ -213,13 +266,17 @@ function App() {
       const data = await res.json();
       console.log('Optimization result:', data);
 
-      if (!data.route?.trip) {
-        alert('Invalid response from server');
-        setLoading(false);
-        return;
-      }
+      // Reload POIs to show new order
+      await loadPois();
 
-      setRoute(data);
+      if (data.route?.trip) {
+        setRoute(data);
+      } else {
+        alert(
+          data.message ||
+            `Optimization saved! ${data.optimizedCount}/${data.totalCount} POIs optimized.`,
+        );
+      }
     } catch (error) {
       console.error('Optimization error:', error);
       alert('Trip optimization failed: ' + error.message);
@@ -427,6 +484,71 @@ function App() {
           )}
         </div>
 
+        {/* Matrix Status */}
+        <div
+          style={{
+            marginBottom: '20px',
+            padding: '12px',
+            background: '#f8f9fa',
+            borderRadius: '4px',
+          }}
+        >
+          <h3>Distance Matrix</h3>
+          {matrixStatus && (
+            <>
+              <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+                <strong>Status:</strong> {matrixStatus.calculatedPairs}/
+                {matrixStatus.totalPairs} pairs ({matrixStatus.percentComplete}
+                %)
+              </div>
+              {matrixStatus.missingPairs > 0 && (
+                <>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: '#856404',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    ⚠️ {matrixStatus.missingPairs} distances need to be
+                    calculated
+                  </div>
+                  <button
+                    onClick={buildMatrix}
+                    disabled={buildingMatrix}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      background: buildingMatrix ? '#6c757d' : '#ffc107',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: buildingMatrix ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {buildingMatrix
+                      ? 'Building Matrix...'
+                      : 'Build Distance Matrix'}
+                  </button>
+                </>
+              )}
+              {matrixStatus.missingPairs === 0 && (
+                <div style={{ fontSize: '12px', color: '#155724' }}>
+                  ✓ Matrix complete! Ready to optimize.
+                </div>
+              )}
+              {matrixStatus.lastUpdated && (
+                <div
+                  style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}
+                >
+                  Last updated:{' '}
+                  {new Date(matrixStatus.lastUpdated).toLocaleString()}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div style={{ marginBottom: '20px' }}>
           <h3>Add POI</h3>
           <form onSubmit={addPoi}>
@@ -485,7 +607,7 @@ function App() {
         <div style={{ marginBottom: '20px' }}>
           <h3>POIs ({pois.length})</h3>
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {pois.map((poi) => (
+            {pois.map((poi, index) => (
               <div
                 key={poi.id}
                 style={{
@@ -497,6 +619,11 @@ function App() {
                 }}
               >
                 <div>
+                  {poi.sequence && (
+                    <span style={{ fontWeight: 'bold', marginRight: '8px' }}>
+                      #{poi.sequence}
+                    </span>
+                  )}
                   <strong>{poi.name}</strong>
                 </div>
                 <div style={{ fontSize: '12px' }}>
@@ -505,6 +632,16 @@ function App() {
                 {poi.notes && (
                   <div style={{ fontSize: '12px', color: '#666' }}>
                     {poi.notes}
+                  </div>
+                )}
+                {poi.optimizedUpTo && (
+                  <div style={{ fontSize: '11px', color: '#28a745' }}>
+                    ✓ Optimized (up to {poi.optimizedUpTo})
+                  </div>
+                )}
+                {poi.fullyOptimized && (
+                  <div style={{ fontSize: '11px', color: '#28a745' }}>
+                    ✓ Fully Optimized
                   </div>
                 )}
                 <button
@@ -564,7 +701,10 @@ function App() {
             <p>
               Time: {Math.round(route.route.trip.summary.time / 60)} minutes
             </p>
-            <p>Stops: {route.optimizedOrder.length}</p>
+            <p>Stops: {route.optimizedOrder?.length || pois.length}</p>
+            <p style={{ fontSize: '12px', color: '#155724', marginTop: '8px' }}>
+              ✓ Order automatically saved
+            </p>
           </div>
         )}
       </div>
@@ -591,7 +731,10 @@ function App() {
           )}
           {pois.map((poi) => (
             <Marker key={poi.id} position={[poi.lat, poi.lng]}>
-              <Popup>{poi.name}</Popup>
+              <Popup>
+                {poi.sequence ? `#${poi.sequence} - ` : ''}
+                {poi.name}
+              </Popup>
             </Marker>
           ))}
           {routeCoordinates.length > 0 && (
@@ -621,7 +764,6 @@ function decodePolyline(encoded) {
     } while (b >= 0x20);
     const dlat = result & 1 ? ~(result >> 1) : result >> 1;
     lat += dlat;
-
     shift = 0;
     result = 0;
     do {
@@ -636,5 +778,4 @@ function decodePolyline(encoded) {
   }
   return poly;
 }
-
 export default App;
