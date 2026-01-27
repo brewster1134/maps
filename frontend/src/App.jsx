@@ -32,7 +32,6 @@ function useDebounce(value, delay) {
 
 function App() {
   const [pois, setPois] = useState([]);
-  const [selectedPois, setSelectedPois] = useState([]);
   const [origin, setOrigin] = useState(null);
   const [destination, setDestination] = useState(null);
   const [roundTrip, setRoundTrip] = useState(true);
@@ -175,8 +174,13 @@ function App() {
   };
 
   const optimizeTrip = async () => {
-    if (!origin || selectedPois.length === 0) {
-      alert('Please set an origin and select at least one POI');
+    if (!origin) {
+      alert('Please set an origin');
+      return;
+    }
+
+    if (pois.length === 0) {
+      alert('Please add at least one POI');
       return;
     }
 
@@ -193,24 +197,34 @@ function App() {
         body: JSON.stringify({
           origin,
           destination: roundTrip ? null : destination,
-          pois: selectedPois,
+          pois: pois,
           roundTrip,
         }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Optimization error:', errorData);
+        alert(`Optimization failed: ${errorData.error || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
+
       const data = await res.json();
+      console.log('Optimization result:', data);
+
+      if (!data.route?.trip) {
+        alert('Invalid response from server');
+        setLoading(false);
+        return;
+      }
+
       setRoute(data);
     } catch (error) {
-      alert('Trip optimization failed');
+      console.error('Optimization error:', error);
+      alert('Trip optimization failed: ' + error.message);
     }
     setLoading(false);
-  };
-
-  const togglePoiSelection = (poi) => {
-    setSelectedPois((prev) =>
-      prev.find((p) => p.id === poi.id)
-        ? prev.filter((p) => p.id !== poi.id)
-        : [...prev, poi],
-    );
   };
 
   const routeCoordinates =
@@ -218,8 +232,6 @@ function App() {
       leg.shape ? decodePolyline(leg.shape) : [],
     ) || [];
 
-  // Autocomplete dropdown component
-  // Autocomplete dropdown component
   // Autocomplete dropdown component
   const AutocompleteDropdown = ({ results, onSelect, show }) => {
     if (!show || results.length === 0) return null;
@@ -478,14 +490,11 @@ function App() {
                 key={poi.id}
                 style={{
                   padding: '8px',
-                  background: selectedPois.find((p) => p.id === poi.id)
-                    ? '#d4edda'
-                    : '#f8f9fa',
+                  background: '#f8f9fa',
                   margin: '4px 0',
-                  cursor: 'pointer',
                   border: '1px solid #ddd',
+                  borderRadius: '4px',
                 }}
-                onClick={() => togglePoiSelection(poi)}
               >
                 <div>
                   <strong>{poi.name}</strong>
@@ -499,11 +508,16 @@ function App() {
                   </div>
                 )}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletePoi(poi.id);
+                  onClick={() => deletePoi(poi.id)}
+                  style={{
+                    marginTop: '4px',
+                    background: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
                   }}
-                  style={{ marginTop: '4px' }}
                 >
                   Delete
                 </button>
@@ -514,25 +528,23 @@ function App() {
 
         <button
           onClick={optimizeTrip}
-          disabled={loading || !origin || selectedPois.length === 0}
+          disabled={loading || !origin || pois.length === 0}
           style={{
             width: '100%',
             padding: '12px',
             background:
-              loading || !origin || selectedPois.length === 0
-                ? '#ccc'
-                : '#007bff',
+              loading || !origin || pois.length === 0 ? '#ccc' : '#007bff',
             color: 'white',
             border: 'none',
             cursor:
-              loading || !origin || selectedPois.length === 0
+              loading || !origin || pois.length === 0
                 ? 'not-allowed'
                 : 'pointer',
             borderRadius: '4px',
             fontWeight: '500',
           }}
         >
-          {loading ? 'Optimizing...' : 'Optimize Trip'}
+          {loading ? 'Optimizing...' : `Optimize Trip (${pois.length} POIs)`}
         </button>
 
         {route && (
