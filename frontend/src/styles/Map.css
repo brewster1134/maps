@@ -1,0 +1,9 @@
+.map-container {
+  flex: 1;
+}
+
+/* Ensure Leaflet map fills container */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}

@@ -1,0 +1,48 @@
+/* Main app layout */
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 400px;
+  overflow-y: auto;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+}
+
+.sidebar h1 {
+  margin-bottom: 20px;
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+/* Section spacing */
+.section {
+  margin-bottom: 20px;
+}
+
+/* Optimize button */
+.optimize-button {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.optimize-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.optimize-button:hover:not(:disabled) {
+  background: #0056b3;
+}

@@ -1,0 +1,42 @@
+{
+  "origin": {
+    "lat": 36.738324,
+    "lng": -119.782872,
+    "name": "Fresno, CA (FNO), Santa Fe Avenue, Fresno, Fresno County, California, 93721, United States"
+  },
+  "destination": null,
+  "roundTrip": true,
+  "optimizedOrder": [
+    {
+      "lat": 33.8734,
+      "lng": -115.901,
+      "sequence": 1,
+      "name": "Joshua Tree National Park"
+    },
+    {
+      "lat": 34.01,
+      "lng": -118.4962,
+      "sequence": 2,
+      "name": "Santa Monica Pier"
+    },
+    {
+      "lat": 36.2704,
+      "lng": -121.8081,
+      "sequence": 3,
+      "name": "Big Sur"
+    },
+    {
+      "lat": 39.0968,
+      "lng": -120.0324,
+      "sequence": 4,
+      "name": "Lake Tahoe"
+    },
+    {
+      "lat": 37.8651,
+      "lng": -119.5383,
+      "sequence": 5,
+      "name": "Yosemite National Park"
+    }
+  ],
+  "lastOptimized": "2026-01-28T04:28:20.805Z"
+}
