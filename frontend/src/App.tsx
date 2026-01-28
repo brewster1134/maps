@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   Polyline,
-  useMap,
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -20,9 +18,69 @@ L.Icon.Default.mergeOptions({
 
 const API_URL = '/api';
 
-// Debounce hook for autocomplete
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+// ---------- TYPES ----------
+interface POI {
+  id?: string;
+  name: string;
+  lat: number | string;
+  lng: number | string;
+  notes?: string;
+  sequence?: number;
+  optimizedUpTo?: number;
+  fullyOptimized?: boolean;
+}
+
+interface Location {
+  lat: number;
+  lng: number;
+  name?: string;
+}
+
+interface GeoResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+}
+
+interface RouteLeg {
+  shape?: string;
+}
+
+interface RouteTrip {
+  legs: RouteLeg[];
+  summary: { length: number; time: number };
+}
+
+interface RouteData {
+  route: {
+    trip?: RouteTrip;
+  };
+  optimizedOrder?: POI[];
+  message?: string;
+  optimizedCount?: number;
+  totalCount?: number;
+}
+
+interface MatrixStatus {
+  calculatedPairs: number;
+  totalPairs: number;
+  percentComplete: number;
+  missingPairs: number;
+  lastUpdated?: string;
+}
+
+interface MatrixProgress {
+  totalPairs: number;
+  calculated: number;
+  skipped: number;
+  failed: number;
+  percentComplete: string;
+  inProgress: boolean;
+}
+
+// ---------- HOOKS ----------
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(handler);
@@ -30,133 +88,199 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-function App() {
-  const [pois, setPois] = useState([]);
-  const [origin, setOrigin] = useState(null);
-  const [destination, setDestination] = useState(null);
+// ---------- AUTOCOMPLETE COMPONENT ----------
+interface AutocompleteDropdownProps {
+  results: GeoResult[];
+  onSelect: (result: GeoResult) => void;
+  show: boolean;
+}
+
+const AutocompleteDropdown: React.FC<AutocompleteDropdownProps> = ({
+  results,
+  onSelect,
+  show,
+}) => {
+  if (!show || results.length === 0) return null;
+
+  return (
+    <div
+      data-autocomplete='true'
+      style={{
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        right: 0,
+        background: 'white',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        maxHeight: '300px',
+        overflowY: 'auto',
+        zIndex: 1000,
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      }}
+    >
+      {results.map((result, idx) => (
+        <div
+          key={idx}
+          style={{
+            padding: '12px',
+            cursor: 'pointer',
+            borderBottom: idx < results.length - 1 ? '1px solid #eee' : 'none',
+            fontSize: '14px',
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelect(result);
+          }}
+        >
+          <div style={{ fontWeight: '500', marginBottom: '2px' }}>
+            {result.display_name.split(',')[0]}
+          </div>
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            {result.display_name.split(',').slice(1).join(',').trim()}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ---------- MAIN COMPONENT ----------
+const App: React.FC = () => {
+  const [pois, setPois] = useState<POI[]>([]);
+  const [origin, setOrigin] = useState<Location | null>(null);
+  const [destination, setDestination] = useState<Location | null>(null);
   const [roundTrip, setRoundTrip] = useState(true);
-  const [route, setRoute] = useState(null);
+  const [route, setRoute] = useState<RouteData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [newPoi, setNewPoi] = useState({
+  const [newPoi, setNewPoi] = useState<POI>({
     name: '',
     lat: '',
     lng: '',
     notes: '',
   });
 
-  // Separate search states for origin, destination, and POI
   const [originSearch, setOriginSearch] = useState('');
   const [destinationSearch, setDestinationSearch] = useState('');
   const [poiSearch, setPoiSearch] = useState('');
-  const [originResults, setOriginResults] = useState([]);
-  const [destinationResults, setDestinationResults] = useState([]);
-  const [poiResults, setPoiResults] = useState([]);
+  const [originResults, setOriginResults] = useState<GeoResult[]>([]);
+  const [destinationResults, setDestinationResults] = useState<GeoResult[]>([]);
+  const [poiResults, setPoiResults] = useState<GeoResult[]>([]);
   const [showOriginAutocomplete, setShowOriginAutocomplete] = useState(false);
   const [showDestinationAutocomplete, setShowDestinationAutocomplete] =
     useState(false);
   const [showPoiAutocomplete, setShowPoiAutocomplete] = useState(false);
 
+  const [matrixStatus, setMatrixStatus] = useState<MatrixStatus | null>(null);
+  const [buildingMatrix, setBuildingMatrix] = useState(false);
+  const [matrixProgress, setMatrixProgress] = useState<MatrixProgress | null>(
+    null,
+  );
+
   const debouncedOriginSearch = useDebounce(originSearch, 300);
   const debouncedDestinationSearch = useDebounce(destinationSearch, 300);
   const debouncedPoiSearch = useDebounce(poiSearch, 300);
-  const [matrixStatus, setMatrixStatus] = useState(null);
-  const [buildingMatrix, setBuildingMatrix] = useState(false);
 
-  // Add this function after loadPois
   const loadMatrixStatus = async () => {
-    const res = await fetch(`${API_URL}/matrix-status`);
-    const data = await res.json();
-    setMatrixStatus(data);
+    try {
+      const res = await fetch(`${API_URL}/matrix-status`);
+      if (!res.ok) return;
+      const data: MatrixStatus = await res.json();
+      setMatrixStatus(data);
+    } catch (err) {
+      console.error('Failed to load matrix status', err);
+    }
   };
 
-  // Add this function
   const buildMatrix = async () => {
     setBuildingMatrix(true);
     const res = await fetch(`${API_URL}/build-matrix`, { method: 'POST' });
     const data = await res.json();
-    alert(data.message);
 
-    // Poll for status updates
+    // Poll for progress updates
     const interval = setInterval(async () => {
-      await loadMatrixStatus();
-    }, 5000);
+      const progressRes = await fetch(`${API_URL}/matrix-progress`);
+      const progressData: MatrixProgress = await progressRes.json();
+      setMatrixProgress(progressData);
 
-    // Stop polling after 30 minutes
+      // Also update matrix status
+      await loadMatrixStatus();
+
+      // Stop polling when complete
+      if (!progressData.inProgress) {
+        clearInterval(interval);
+        setBuildingMatrix(false);
+        setMatrixProgress(null);
+        alert('Distance matrix build complete!');
+      }
+    }, 2000);
+
+    // Stop polling after 2 hours max
     setTimeout(() => {
       clearInterval(interval);
       setBuildingMatrix(false);
-    }, 1800000);
+    }, 7200000);
   };
 
-  // Update useEffect to load matrix status
+  // ---------- EFFECTS ----------
   useEffect(() => {
     loadPois();
     loadMatrixStatus();
   }, []);
 
   useEffect(() => {
-    loadPois();
-  }, []);
-
-  // Auto-search for origin
-  useEffect(() => {
-    if (debouncedOriginSearch.length >= 3) {
+    if (debouncedOriginSearch.length >= 3)
       searchLocation(debouncedOriginSearch, 'origin');
-    } else {
-      setOriginResults([]);
-    }
+    else setOriginResults([]);
   }, [debouncedOriginSearch]);
 
-  // Auto-search for destination
   useEffect(() => {
-    if (debouncedDestinationSearch.length >= 3) {
+    if (debouncedDestinationSearch.length >= 3)
       searchLocation(debouncedDestinationSearch, 'destination');
-    } else {
-      setDestinationResults([]);
-    }
+    else setDestinationResults([]);
   }, [debouncedDestinationSearch]);
 
-  // Auto-search for POI
   useEffect(() => {
-    if (debouncedPoiSearch.length >= 3) {
+    if (debouncedPoiSearch.length >= 3)
       searchLocation(debouncedPoiSearch, 'poi');
-    } else {
-      setPoiResults([]);
-    }
+    else setPoiResults([]);
   }, [debouncedPoiSearch]);
 
-  // Close autocomplete when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
-        !event.target.closest('input') &&
-        !event.target.closest('[data-autocomplete]')
+        !(event.target as HTMLElement).closest('input') &&
+        !(event.target as HTMLElement).closest('[data-autocomplete]')
       ) {
         setShowOriginAutocomplete(false);
         setShowDestinationAutocomplete(false);
         setShowPoiAutocomplete(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ---------- FUNCTIONS ----------
   const loadPois = async () => {
     const res = await fetch(`${API_URL}/pois`);
     const data = await res.json();
     setPois(data);
   };
 
-  const addPoi = async (e) => {
+  const addPoi = async (e: React.FormEvent) => {
     e.preventDefault();
     await fetch(`${API_URL}/pois`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...newPoi,
-        lat: parseFloat(newPoi.lat),
-        lng: parseFloat(newPoi.lng),
+        lat: parseFloat(newPoi.lat as string),
+        lng: parseFloat(newPoi.lng as string),
       }),
     });
     setNewPoi({ name: '', lat: '', lng: '', notes: '' });
@@ -164,12 +288,16 @@ function App() {
     loadPois();
   };
 
-  const deletePoi = async (id) => {
+  const deletePoi = async (id?: string) => {
+    if (!id) return;
     await fetch(`${API_URL}/pois/${id}`, { method: 'DELETE' });
     loadPois();
   };
 
-  const searchLocation = async (query, type) => {
+  const searchLocation = async (
+    query: string,
+    type: 'origin' | 'destination' | 'poi',
+  ) => {
     if (!query) return;
     const res = await fetch(
       `${API_URL}/geocode?query=${encodeURIComponent(query)}`,
@@ -182,41 +310,39 @@ function App() {
     } else if (type === 'destination') {
       setDestinationResults(data);
       setShowDestinationAutocomplete(true);
-    } else if (type === 'poi') {
+    } else {
       setPoiResults(data);
       setShowPoiAutocomplete(true);
     }
   };
 
-  const selectOrigin = (result) => {
-    const loc = {
+  const selectOrigin = (result: GeoResult) => {
+    setOrigin({
       lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
+      lng: parseFloat(result.lon), // Changed from result.lng
       name: result.display_name,
-    };
-    setOrigin(loc);
+    });
     setOriginSearch('');
     setOriginResults([]);
     setShowOriginAutocomplete(false);
   };
 
-  const selectDestination = (result) => {
-    const loc = {
+  const selectDestination = (result: GeoResult) => {
+    setDestination({
       lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
+      lng: parseFloat(result.lon), // Changed from result.lng
       name: result.display_name,
-    };
-    setDestination(loc);
+    });
     setDestinationSearch('');
     setDestinationResults([]);
     setShowDestinationAutocomplete(false);
   };
 
-  const selectPoiLocation = (result) => {
+  const selectPoiLocation = (result: GeoResult) => {
     setNewPoi({
       ...newPoi,
       lat: result.lat,
-      lng: result.lon,
+      lng: result.lon, // Changed from result.lng
       name: result.display_name.split(',')[0],
     });
     setPoiSearch('');
@@ -229,19 +355,17 @@ function App() {
       alert('Please set an origin');
       return;
     }
-
     if (pois.length === 0) {
       alert('Please add at least one POI');
       return;
     }
-
     if (!roundTrip && !destination) {
       alert('Please set a destination for one-way trips');
       return;
     }
 
     setLoading(true);
-    setRoute(null); // Clear old route
+    setRoute(null);
 
     try {
       const res = await fetch(`${API_URL}/optimize-trip`, {
@@ -250,23 +374,19 @@ function App() {
         body: JSON.stringify({
           origin,
           destination: roundTrip ? null : destination,
-          pois: pois,
+          pois,
           roundTrip,
         }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Optimization error:', errorData);
         alert(`Optimization failed: ${errorData.error || 'Unknown error'}`);
         setLoading(false);
         return;
       }
 
-      const data = await res.json();
-      console.log('Optimization result:', data);
-
-      // Reload POIs to show new order
+      const data: RouteData = await res.json();
       await loadPois();
 
       if (data.route?.trip) {
@@ -277,72 +397,20 @@ function App() {
             `Optimization saved! ${data.optimizedCount}/${data.totalCount} POIs optimized.`,
         );
       }
-    } catch (error) {
-      console.error('Optimization error:', error);
+    } catch (error: any) {
       alert('Trip optimization failed: ' + error.message);
     }
     setLoading(false);
   };
 
-  const routeCoordinates =
+  const routeCoordinates: [number, number][] =
     route?.route?.trip?.legs?.flatMap((leg) =>
       leg.shape ? decodePolyline(leg.shape) : [],
     ) || [];
 
-  // Autocomplete dropdown component
-  const AutocompleteDropdown = ({ results, onSelect, show }) => {
-    if (!show || results.length === 0) return null;
-
-    return (
-      <div
-        data-autocomplete='true'
-        style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          background: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          maxHeight: '300px',
-          overflowY: 'auto',
-          zIndex: 1000,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-      >
-        {results.map((result, idx) => (
-          <div
-            key={idx}
-            style={{
-              padding: '12px',
-              cursor: 'pointer',
-              borderBottom:
-                idx < results.length - 1 ? '1px solid #eee' : 'none',
-              fontSize: '14px',
-              transition: 'background 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onSelect(result);
-            }}
-          >
-            <div style={{ fontWeight: '500', marginBottom: '2px' }}>
-              {result.display_name.split(',')[0]}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              {result.display_name.split(',').slice(1).join(',').trim()}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
+      {/* LEFT SIDEBAR */}
       <div
         style={{
           width: '400px',
@@ -353,6 +421,7 @@ function App() {
       >
         <h1 style={{ marginBottom: '20px' }}>Trip Planner</h1>
 
+        {/* TRIP SETTINGS */}
         <div style={{ marginBottom: '20px' }}>
           <h3>Trip Settings</h3>
 
@@ -423,7 +492,7 @@ function App() {
             Round trip (return to origin)
           </label>
 
-          {/* Destination (only shown if not round trip) */}
+          {/* Destination */}
           {!roundTrip && (
             <div style={{ marginBottom: '12px' }}>
               <label
@@ -484,7 +553,7 @@ function App() {
           )}
         </div>
 
-        {/* Matrix Status */}
+        {/* MATRIX STATUS */}
         <div
           style={{
             marginBottom: '20px',
@@ -501,7 +570,48 @@ function App() {
                 {matrixStatus.totalPairs} pairs ({matrixStatus.percentComplete}
                 %)
               </div>
-              {matrixStatus.missingPairs > 0 && (
+
+              {/* Live Progress Bar */}
+              {buildingMatrix && matrixProgress && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', marginBottom: '4px' }}>
+                    Building:{' '}
+                    {matrixProgress.calculated + matrixProgress.skipped}/
+                    {matrixProgress.totalPairs} (
+                    {matrixProgress.percentComplete}%)
+                  </div>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '20px',
+                      background: '#e9ecef',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${matrixProgress.percentComplete}%`,
+                        height: '100%',
+                        background: '#28a745',
+                        transition: 'width 0.3s ease',
+                      }}
+                    ></div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: '#666',
+                      marginTop: '4px',
+                    }}
+                  >
+                    New: {matrixProgress.calculated} | Cached:{' '}
+                    {matrixProgress.skipped} | Failed: {matrixProgress.failed}
+                  </div>
+                </div>
+              )}
+
+              {matrixStatus.missingPairs > 0 && !buildingMatrix && (
                 <>
                   <div
                     style={{
@@ -519,24 +629,38 @@ function App() {
                     style={{
                       width: '100%',
                       padding: '8px',
-                      background: buildingMatrix ? '#6c757d' : '#ffc107',
+                      background: '#ffc107',
                       color: 'white',
                       border: 'none',
                       borderRadius: '4px',
-                      cursor: buildingMatrix ? 'not-allowed' : 'pointer',
+                      cursor: 'pointer',
                     }}
                   >
-                    {buildingMatrix
-                      ? 'Building Matrix...'
-                      : 'Build Distance Matrix'}
+                    Build Distance Matrix
                   </button>
                 </>
               )}
-              {matrixStatus.missingPairs === 0 && (
+
+              {buildingMatrix && (
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: '#0066cc',
+                    textAlign: 'center',
+                    padding: '8px',
+                  }}
+                >
+                  <strong>⏳ Building matrix...</strong> This may take a while
+                  for many POIs.
+                </div>
+              )}
+
+              {matrixStatus.missingPairs === 0 && !buildingMatrix && (
                 <div style={{ fontSize: '12px', color: '#155724' }}>
                   ✓ Matrix complete! Ready to optimize.
                 </div>
               )}
+
               {matrixStatus.lastUpdated && (
                 <div
                   style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}
@@ -549,6 +673,7 @@ function App() {
           )}
         </div>
 
+        {/* ADD POI */}
         <div style={{ marginBottom: '20px' }}>
           <h3>Add POI</h3>
           <form onSubmit={addPoi}>
@@ -604,10 +729,11 @@ function App() {
           </form>
         </div>
 
+        {/* POI LIST */}
         <div style={{ marginBottom: '20px' }}>
           <h3>POIs ({pois.length})</h3>
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {pois.map((poi, index) => (
+            {pois.map((poi) => (
               <div
                 key={poi.id}
                 style={{
@@ -627,7 +753,7 @@ function App() {
                   <strong>{poi.name}</strong>
                 </div>
                 <div style={{ fontSize: '12px' }}>
-                  {poi.lat.toFixed(4)}, {poi.lng.toFixed(4)}
+                  {Number(poi.lat).toFixed(4)}, {Number(poi.lng).toFixed(4)}
                 </div>
                 {poi.notes && (
                   <div style={{ fontSize: '12px', color: '#666' }}>
@@ -663,6 +789,7 @@ function App() {
           </div>
         </div>
 
+        {/* OPTIMIZE BUTTON */}
         <button
           onClick={optimizeTrip}
           disabled={loading || !origin || pois.length === 0}
@@ -684,7 +811,8 @@ function App() {
           {loading ? 'Optimizing...' : `Optimize Trip (${pois.length} POIs)`}
         </button>
 
-        {route && (
+        {/* ROUTE RESULT */}
+        {route && route.route?.trip && (
           <div
             style={{
               marginTop: '20px',
@@ -702,13 +830,20 @@ function App() {
               Time: {Math.round(route.route.trip.summary.time / 60)} minutes
             </p>
             <p>Stops: {route.optimizedOrder?.length || pois.length}</p>
-            <p style={{ fontSize: '12px', color: '#155724', marginTop: '8px' }}>
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#155724',
+                marginTop: '8px',
+              }}
+            >
               ✓ Order automatically saved
             </p>
           </div>
         )}
       </div>
 
+      {/* MAP */}
       <div style={{ flex: 1 }}>
         <MapContainer
           center={[36.7783, -119.4179]}
@@ -730,7 +865,7 @@ function App() {
             </Marker>
           )}
           {pois.map((poi) => (
-            <Marker key={poi.id} position={[poi.lat, poi.lng]}>
+            <Marker key={poi.id} position={[Number(poi.lat), Number(poi.lng)]}>
               <Popup>
                 {poi.sequence ? `#${poi.sequence} - ` : ''}
                 {poi.name}
@@ -744,19 +879,21 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
-function decodePolyline(encoded) {
-  const poly = [];
-  let index = 0,
-    len = encoded.length;
-  let lat = 0,
-    lng = 0;
+// ---------- POLYLINE DECODER ----------
+function decodePolyline(encoded: string): [number, number][] {
+  const poly: [number, number][] = [];
+  let index = 0;
+  const len = encoded.length;
+  let lat = 0;
+  let lng = 0;
 
   while (index < len) {
-    let b,
-      shift = 0,
-      result = 0;
+    let b: number;
+    let shift = 0;
+    let result = 0;
+
     do {
       b = encoded.charCodeAt(index++) - 63;
       result |= (b & 0x1f) << shift;
@@ -764,6 +901,7 @@ function decodePolyline(encoded) {
     } while (b >= 0x20);
     const dlat = result & 1 ? ~(result >> 1) : result >> 1;
     lat += dlat;
+
     shift = 0;
     result = 0;
     do {
@@ -776,6 +914,8 @@ function decodePolyline(encoded) {
 
     poly.push([lat / 1e6, lng / 1e6]);
   }
+
   return poly;
 }
+
 export default App;

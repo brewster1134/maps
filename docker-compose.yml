@@ -1,4 +1,65 @@
 services:
+  backend:
+    build: ./backend
+    container_name: osm-backend
+    depends_on:
+      - vroom
+      - valhalla
+    links:
+      - valhalla:valhalla
+      - vroom:vroom
+      - nominatim:nominatim
+    environment:
+      - VROOM_URL=http://vroom:3000
+      - VALHALLA_URL=http://valhalla:8002
+      - NOMINATIM_URL=http://nominatim:8080
+    volumes:
+      - ./data/pois:/data/pois
+    ports:
+      - '3001:3001'
+    restart: unless-stopped
+    networks:
+      - osm-network
+
+  frontend:
+    build: ./frontend
+    container_name: osm-frontend
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - osm-network
+
+  nginx:
+    build: ./nginx
+    container_name: osm-nginx
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - '8080:80'
+    restart: unless-stopped
+    networks:
+      - osm-network
+
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: osm-nominatim
+    volumes:
+      - ./data/pbf:/nominatim/data
+      - nominatim-db:/var/lib/postgresql/14/main
+    environment:
+      - PBF_PATH=/nominatim/data/california-latest.osm.pbf
+      - NOMINATIM_PASSWORD=very_secure_password
+    ports:
+      - '8001:8080'
+    restart: unless-stopped
+    shm_size: 2gb
+    networks:
+      osm-network:
+        aliases:
+          - nominatim
+
   valhalla:
     build: ./valhalla
     container_name: osm-valhalla
@@ -29,67 +90,6 @@ services:
           - vroom
     volumes:
       - ./vroom/config.yml:/conf/config.yml:ro
-
-  backend:
-    build: ./backend
-    container_name: osm-backend
-    depends_on:
-      - vroom
-      - valhalla
-    links:
-      - valhalla:valhalla
-      - vroom:vroom
-      - nominatim:nominatim
-    environment:
-      - VROOM_URL=http://vroom:3000
-      - VALHALLA_URL=http://valhalla:8002
-      - NOMINATIM_URL=http://nominatim:8080
-    volumes:
-      - ./data/pois:/data/pois
-    ports:
-      - '3001:3001'
-    restart: unless-stopped
-    networks:
-      - osm-network
-
-  nominatim:
-    image: mediagis/nominatim:4.4
-    container_name: osm-nominatim
-    volumes:
-      - ./data/pbf:/nominatim/data
-      - nominatim-db:/var/lib/postgresql/14/main
-    environment:
-      - PBF_PATH=/nominatim/data/california-latest.osm.pbf
-      - NOMINATIM_PASSWORD=very_secure_password
-    ports:
-      - '8001:8080'
-    restart: unless-stopped
-    shm_size: 2gb
-    networks:
-      osm-network:
-        aliases:
-          - nominatim
-
-  frontend:
-    build: ./frontend
-    container_name: osm-frontend
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - osm-network
-
-  nginx:
-    build: ./nginx
-    container_name: osm-nginx
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - '8080:80'
-    restart: unless-stopped
-    networks:
-      - osm-network
 
 volumes:
   valhalla-tiles:
