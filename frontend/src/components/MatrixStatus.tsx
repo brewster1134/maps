@@ -1,6 +1,6 @@
 import React from 'react';
 import { MatrixStatus as MatrixStatusType } from '../types';
-import '../styles/MatrixStatus.css';
+import '../styles/MatrixStatus.scss';
 
 interface MatrixStatusProps {
   status: MatrixStatusType | null;

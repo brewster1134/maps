@@ -7,7 +7,7 @@ import {
   Polyline,
 } from 'react-leaflet';
 import { POI, Location } from '../types';
-import '../styles/Map.css';
+import '../styles/Map.scss';
 
 interface MapComponentProps {
   origin: Location | null;

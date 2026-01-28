@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './styles/App.css';
+import 'leaflet/dist/leaflet.scss';
+import './styles/reset.css';
+import './styles/App.scss';
 
 // Fix default icon paths for bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -336,8 +337,6 @@ const App: React.FC = () => {
     <div className='app-container'>
       {/* SIDEBAR */}
       <div className='sidebar'>
-        <h1>Trip Planner</h1>
-
         {/* Trip Settings */}
         <div className='section'>
           <TripSettings

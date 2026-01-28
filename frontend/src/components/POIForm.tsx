@@ -1,7 +1,7 @@
 import React from 'react';
 import { POI, GeoResult } from '../types';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
-import '../styles/POIForm.css';
+import '../styles/POIForm.scss';
 
 interface POIFormProps {
   poi: POI;

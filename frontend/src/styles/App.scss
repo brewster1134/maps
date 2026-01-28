@@ -1,5 +1,15 @@
+html {
+  font-size: 62.5%;
+}
+
+html,
+body {
+  font-family: Helvetica;
+}
+
 /* Main app layout */
 .app-container {
+  font-size: 1.4rem;
   display: flex;
   height: 100vh;
 }
@@ -7,22 +17,14 @@
 .sidebar {
   width: 400px;
   overflow-y: auto;
-  padding: 20px;
+  padding: 1rem;
   border-right: 1px solid #ddd;
-}
-
-.sidebar h1 {
-  margin-bottom: 20px;
-}
-
-.sidebar h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
+  box-sizing: border-box;
 }
 
 /* Section spacing */
 .section {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .stale-optimization-warning {
@@ -31,7 +33,6 @@
   background: #fff3cd;
   color: #856404;
   border-radius: 4px;
-  font-size: 12px;
   text-align: center;
 }
 
@@ -45,7 +46,6 @@
   cursor: pointer;
   border-radius: 4px;
   font-weight: 500;
-  font-size: 14px;
 }
 
 .optimize-button:disabled {

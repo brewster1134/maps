@@ -1,6 +1,6 @@
 import React from 'react';
 import { POI, OptimizedTrip } from '../types';
-import '../styles/POIList.css';
+import '../styles/POIList.scss';
 
 interface POIListProps {
   pois: POI[];

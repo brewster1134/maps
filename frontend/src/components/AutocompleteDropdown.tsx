@@ -1,6 +1,6 @@
 import React from 'react';
 import { GeoResult } from '../types';
-import '../styles/AutocompleteDropdown.css';
+import '../styles/AutocompleteDropdown.scss';
 
 interface AutocompleteDropdownProps {
   results: GeoResult[];

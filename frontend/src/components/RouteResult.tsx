@@ -1,6 +1,6 @@
 import React from 'react';
 import { RouteData } from '../types';
-import '../styles/RouteResult.css';
+import '../styles/RouteResult.scss';
 
 interface RouteResultProps {
   route: RouteData | null;

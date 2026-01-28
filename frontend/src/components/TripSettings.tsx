@@ -1,7 +1,7 @@
 import React from 'react';
 import { Location, GeoResult } from '../types';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
-import '../styles/TripSettings.css';
+import '../styles/TripSettings.scss';
 
 interface TripSettingsProps {
   origin: Location | null;
@@ -50,8 +50,6 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
 }) => {
   return (
     <div className='trip-settings'>
-      <h3>Trip Settings</h3>
-
       {/* Origin */}
       <div className='form-group'>
         <label className='form-label'>Origin</label>
