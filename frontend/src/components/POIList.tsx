@@ -18,8 +18,7 @@ export const POIList: React.FC<POIListProps> = ({
       <h3>POIs ({pois.length})</h3>
       {optimizedTrip && (
         <div className='optimization-timestamp'>
-          ✓ Trip optimized on{' '}
-          {new Date(optimizedTrip.lastOptimized).toLocaleString()}
+          {`✓ Trip optimized on ${new Date(optimizedTrip.lastOptimized).toLocaleString()}`}
         </div>
       )}
       <div className='poi-list-scroll'>
@@ -28,19 +27,23 @@ export const POIList: React.FC<POIListProps> = ({
             key={poi.id}
             className={`poi-item ${poi.sequence ? 'poi-item-optimized' : ''}`}
           >
-            <div className='poi-header'>
-              {poi.sequence && (
-                <span className='poi-sequence'>#{poi.sequence}</span>
-              )}
-              <strong>{poi.name}</strong>
+            <div className='poi-line-1'>
+              <div className='poi-header'>
+                {poi.sequence && (
+                  <span className='poi-sequence'>#{poi.sequence}</span>
+                )}
+                <strong>{poi.name}</strong>
+              </div>
+              <button
+                onClick={() => onDelete(poi.id)}
+                className='delete-button'
+              >
+                Delete
+              </button>
             </div>
-            <div className='poi-coordinates'>
-              {Number(poi.lat).toFixed(4)}, {Number(poi.lng).toFixed(4)}
+            <div className='poi-line-1'>
+              {poi.notes && <div className='poi-notes'>{poi.notes}</div>}
             </div>
-            {poi.notes && <div className='poi-notes'>{poi.notes}</div>}
-            <button onClick={() => onDelete(poi.id)} className='delete-button'>
-              Delete
-            </button>
           </div>
         ))}
       </div>

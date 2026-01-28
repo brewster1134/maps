@@ -17,10 +17,10 @@ export const MatrixStatus: React.FC<MatrixStatusProps> = ({
 
   return (
     <div className='matrix-status'>
-      <h3>Distance Matrix</h3>
+      <h3>Distance Calculations</h3>
       <div className='matrix-info'>
-        <strong>Status:</strong> {status.calculatedPairs}/{status.totalPairs}{' '}
-        pairs ({status.percentComplete}%)
+        <strong>Status:</strong>
+        {`${status.calculatedPairs}/${status.totalPairs} pairs (${status.percentComplete}%)`}
       </div>
 
       {status.missingPairs > 0 && !building && (
@@ -42,9 +42,7 @@ export const MatrixStatus: React.FC<MatrixStatusProps> = ({
       )}
 
       {status.missingPairs === 0 && !building && (
-        <div className='matrix-complete'>
-          ✓ Matrix complete! Ready to optimize.
-        </div>
+        <div className='matrix-complete'>✓ Matrix complete!</div>
       )}
 
       {status.lastUpdated && (

@@ -70,7 +70,6 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
         </div>
         {origin && (
           <div className='location-display'>
-            Set to:{' '}
             {origin.name ||
               `${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`}
             <button onClick={onOriginClear} className='clear-button'>
@@ -89,8 +88,8 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
           type='checkbox'
           checked={roundTrip}
           onChange={(e) => onRoundTripChange(e.target.checked)}
-        />{' '}
-        Round trip (return to origin)
+        />
+        Round trip
       </label>
 
       {/* Destination */}
@@ -114,7 +113,6 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
           </div>
           {destination && (
             <div className='location-display'>
-              Set to:{' '}
               {destination.name ||
                 `${destination.lat.toFixed(4)}, ${destination.lng.toFixed(4)}`}
               <button onClick={onDestinationClear} className='clear-button'>

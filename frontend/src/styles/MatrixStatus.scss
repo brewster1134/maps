@@ -1,8 +1,8 @@
 .matrix-status {
   margin-bottom: 20px;
   padding: 12px;
-  background: #f8f9fa;
-  border-radius: 4px;
+  background: #ddd;
+  border-radius: 0.5rem;
 }
 
 .matrix-info {
@@ -20,9 +20,9 @@
   background: #ffc107;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 .build-button:hover {
