@@ -3,18 +3,21 @@ services:
     build: ./backend
     container_name: osm-backend
     depends_on:
-      - vroom
+      - nominatim
       - valhalla
+      - vroom
     links:
+      - nominatim:nominatim
       - valhalla:valhalla
       - vroom:vroom
-      - nominatim:nominatim
     environment:
-      - VROOM_URL=http://vroom:3000
       - VALHALLA_URL=http://valhalla:8002
+      - VROOM_URL=http://vroom:3000
       - NOMINATIM_URL=http://nominatim:8080
+      - BOUNDS_FILE=/app/config/bounds.json
     volumes:
       - ./data/pois:/data/pois
+      - ./data/pbf:/data/pbf
     ports:
       - '3001:3001'
     restart: unless-stopped

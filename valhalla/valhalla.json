@@ -1,7 +1,8 @@
 {
   "mjolnir": {
-    "tile_dir": "/data/valhalla",
     "admin": "/data/valhalla/admin.sqlite",
-    "timezone": "/data/valhalla/tz_world.sqlite"
+    "tile_dir": "/data/valhalla",
+    "timezone": "/data/valhalla/tz_world.sqlite",
+    "use_tiles_ignore_tar": true
   }
 }

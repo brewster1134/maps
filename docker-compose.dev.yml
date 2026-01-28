@@ -1,4 +1,14 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend/src:/app/src
+      - ./data/pois:/data/pois
+    environment:
+      - NODE_ENV=development
+
   frontend:
     build:
       context: ./frontend
@@ -10,13 +20,3 @@ services:
       - ./frontend/public:/app/public
     environment:
       - CHOKIDAR_USEPOLLING=true
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./backend/src:/app/src
-      - ./data/pois:/data/pois
-    environment:
-      - NODE_ENV=development

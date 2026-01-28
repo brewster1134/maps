@@ -83,6 +83,14 @@ docker-compose ps
 
 ## Useful Commands
 
+### Maintenance
+
+```bash
+# delete all extracted tiles to force unpacking the pbf files again
+docker exec osm-valhalla rm -rf /data/valhalla/[0-9]*
+docker restart valhalla
+```
+
 ### Service Management
 
 ```bash
