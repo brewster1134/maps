@@ -32,8 +32,8 @@ app.get('/health', (_req, res) => {
 // Start server
 app.listen(config.server.port, () => {
   console.log(`🚀 Backend running on port ${config.server.port}`);
-  console.log(`📍 Data directory: ${config.files.dataDir}`);
-  console.log(`🗺️  VROOM: ${config.vroom.url}`);
-  console.log(`🛣️  Valhalla: ${config.valhalla.url}`);
-  console.log(`📍 Nominatim: ${config.nominatim.url}`);
+  console.log(`🚀 Data directory: ${config.files.dataDir}`);
+  console.log(`🚀 VROOM: ${config.vroom.url}`);
+  console.log(`🚀 Valhalla: ${config.valhalla.url}`);
+  console.log(`🚀 Nominatim: ${config.nominatim.url}`);
 });

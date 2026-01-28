@@ -20,7 +20,7 @@ export async function calculateDistance(
           { lat: Number(poi2.lat), lon: Number(poi2.lng) },
         ],
         costing: 'auto',
-        directions_options: { units: 'kilometers' },
+        directions_options: { units: 'miles' },
       },
       { timeout: 30000 },
     );

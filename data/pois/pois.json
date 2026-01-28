@@ -58,5 +58,13 @@
     "sequence": 5,
     "lastOptimized": "2026-01-27T22:39:34.624Z",
     "fullyOptimized": true
+  },
+  {
+    "id": "1769576263561",
+    "name": "Mount Shasta",
+    "lat": 41.3221585,
+    "lng": -122.3206354,
+    "notes": "Hollow mountain",
+    "createdAt": "2026-01-28T04:57:43.561Z"
   }
 ]

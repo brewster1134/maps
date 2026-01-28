@@ -25,6 +25,16 @@
   margin-bottom: 20px;
 }
 
+.stale-optimization-warning {
+  margin-top: 12px;
+  padding: 8px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
 /* Optimize button */
 .optimize-button {
   width: 100%;

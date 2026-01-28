@@ -135,6 +135,7 @@ const App: React.FC = () => {
       // Check for completion
       const checkComplete = setInterval(async () => {
         const status = await fetchMatrixStatus();
+        setMatrixStatus(status);
         if (status.missingPairs === 0) {
           clearInterval(interval);
           clearInterval(checkComplete);
@@ -224,6 +225,24 @@ const App: React.FC = () => {
   };
 
   // ---------- TRIP OPTIMIZATION ----------
+  const isOptimizationStale = (): boolean => {
+    if (!optimizedTrip) return false;
+
+    // Check if any POIs are missing from optimization
+    const optimizedCoords = new Set(
+      optimizedTrip.optimizedOrder.map(
+        (op) => `${op.lat.toFixed(6)},${op.lng.toFixed(6)}`,
+      ),
+    );
+
+    const hasMissingPOIs = pois.some((poi) => {
+      const key = `${Number(poi.lat).toFixed(6)},${Number(poi.lng).toFixed(6)}`;
+      return !optimizedCoords.has(key);
+    });
+
+    return hasMissingPOIs;
+  };
+
   const handleOptimizeTrip = async () => {
     if (!origin) {
       alert('Please set an origin');
@@ -400,11 +419,26 @@ const App: React.FC = () => {
           />
         </div>
 
+        {isOptimizationStale() &&
+          matrixStatus &&
+          matrixStatus.missingPairs === 0 && (
+            <div className='stale-optimization-warning'>
+              ⚠️ New POIs detected since last optimization. Click optimize to
+              update route.
+            </div>
+          )}
+
         {/* Optimize Button */}
         <button
-          onClick={handleOptimizeTrip}
-          disabled={loading || !origin || pois.length === 0}
           className='optimize-button'
+          onClick={handleOptimizeTrip}
+          disabled={
+            loading ||
+            !origin ||
+            pois.length === 0 ||
+            !matrixStatus ||
+            matrixStatus.missingPairs > 0
+          }
         >
           {loading ? 'Optimizing...' : `Optimize Trip (${pois.length} POIs)`}
         </button>
