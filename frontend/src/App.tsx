@@ -178,6 +178,19 @@ const App: React.FC = () => {
     loadPois();
   };
 
+  const handleToggleRoundTrip = async () => {
+    setRoundTrip((prev) => {
+      const next = !prev;
+
+      if (optimizedTrip?.roundTrip !== next) {
+        setOptimizedTrip(null);
+        setRoute(null);
+      }
+
+      return next;
+    });
+  };
+
   const handleReverseRoute = async () => {
     setLoading(true);
     try {
@@ -409,7 +422,7 @@ const App: React.FC = () => {
               setDestination(null);
               setDestinationSearch('');
             }}
-            onRoundTripChange={setRoundTrip}
+            onRoundTripChange={handleToggleRoundTrip}
           />
         </div>
 
