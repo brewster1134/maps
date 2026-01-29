@@ -60,14 +60,13 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
     <div className='trip-settings'>
       {/* Origin */}
       <div className='form-group'>
-        <label className='form-label'>Origin</label>
         <div className='autocomplete-container'>
           <input
             value={originSearch}
             onChange={(e) => onOriginSearchChange(e.target.value)}
             onFocus={onOriginFocus}
             onBlur={onOriginBlur}
-            placeholder='Start typing origin address...'
+            placeholder='Origin...'
             className='form-input'
           />
           <AutocompleteDropdown
@@ -116,14 +115,13 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
       {/* Destination */}
       {!roundTrip && (
         <div className='form-group'>
-          <label className='form-label'>Destination</label>
           <div className='autocomplete-container'>
             <input
               value={destinationSearch}
               onChange={(e) => onDestinationSearchChange(e.target.value)}
               onFocus={onDestinationFocus}
               onBlur={onDestinationBlur}
-              placeholder='Start typing destination address...'
+              placeholder='Destination...'
               className='form-input'
             />
             <AutocompleteDropdown

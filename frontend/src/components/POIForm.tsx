@@ -38,7 +38,7 @@ export const POIForm: React.FC<POIFormProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
             onFocus={onSearchFocus}
             onBlur={onSearchBlur}
-            placeholder='Search for POI location...'
+            placeholder='POI...'
             className='form-input'
           />
           <AutocompleteDropdown
