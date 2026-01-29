@@ -47,6 +47,7 @@ import {
 
 const App: React.FC = () => {
   // State
+  const [pendingPoi, setPendingPoi] = useState<POI | null>(null);
   const [pois, setPois] = useState<POI[]>([]);
   const [origin, setOrigin] = useState<Location | null>(null);
   const [destination, setDestination] = useState<Location | null>(null);
@@ -154,14 +155,18 @@ const App: React.FC = () => {
   // ---------- POI OPERATIONS ----------
   const handleAddPoi = async (e: React.FormEvent) => {
     e.preventDefault();
+
     await createPOI({
       name: newPoi.name,
       lat: parseFloat(newPoi.lat as string),
       lng: parseFloat(newPoi.lng as string),
       notes: newPoi.notes,
     });
+
     setNewPoi({ name: '', lat: '', lng: '', notes: '' });
+    setPendingPoi(null);
     setPoiSearch('');
+
     loadPois();
     loadMatrixStatus();
   };
@@ -236,12 +241,16 @@ const App: React.FC = () => {
   };
 
   const selectPoiLocation = (result: GeoResult) => {
-    setNewPoi({
-      ...newPoi,
+    const poi = {
+      name: result.display_name.split(',')[0],
       lat: result.lat,
       lng: result.lon,
-      name: result.display_name.split(',')[0],
-    });
+      notes: '',
+    };
+
+    setNewPoi(poi);
+    setPendingPoi(poi);
+
     setPoiSearch('');
     setPoiResults([]);
     setShowPoiAutocomplete(false);
@@ -474,8 +483,9 @@ const App: React.FC = () => {
 
       {/* MAP */}
       <MapComponent
-        origin={origin}
         destination={destination}
+        origin={origin}
+        pendingPoi={pendingPoi}
         pois={pois}
         roundTrip={roundTrip}
         routeCoordinates={routeCoordinates}

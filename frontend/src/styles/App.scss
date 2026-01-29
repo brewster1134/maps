@@ -7,6 +7,12 @@ body {
   font-family: Helvetica;
 }
 
+button:disabled,
+button:disabled:hover {
+  background-color: lightgray;
+  cursor: not-allowed;
+}
+
 .hidden {
   display: none;
 }

@@ -74,8 +74,12 @@ export const POIForm: React.FC<POIFormProps> = ({
           placeholder='Notes'
           className='form-textarea'
         />
-        <button type='submit' className='submit-button'>
-          Add POI
+        <button
+          type='submit'
+          className='submit-button'
+          disabled={!poi.lat || !poi.lng}
+        >
+          {poi.name ? `Add ${poi.name}` : 'Search for POI'}
         </button>
       </form>
     </div>

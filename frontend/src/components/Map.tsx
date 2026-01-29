@@ -12,8 +12,9 @@ import { getPOIVisitStatus } from '../utils/location';
 import '../styles/Map.scss';
 
 interface MapComponentProps {
-  origin: Location | null;
   destination: Location | null;
+  origin: Location | null;
+  pendingPoi?: POI | null;
   pois: POI[];
   roundTrip: boolean;
   routeCoordinates: [number, number][];
@@ -61,8 +62,9 @@ const createNumberedIcon = (
 };
 
 export const MapComponent: React.FC<MapComponentProps> = ({
-  origin,
   destination,
+  origin,
+  pendingPoi,
   pois,
   roundTrip,
   routeCoordinates,
@@ -264,6 +266,42 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         {/* Upcoming portion of route (blue) */}
         {upcomingRoute.length > 0 && (
           <Polyline positions={upcomingRoute} color='blue' weight={4} />
+        )}
+
+        {pendingPoi && (
+          <Marker
+            position={[Number(pendingPoi.lat), Number(pendingPoi.lng)]}
+            icon={
+              new L.DivIcon({
+                className: 'pending-poi-marker',
+                html: `
+          <div style="
+            background-color: #f39c12;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px dashed white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            opacity: 0.9;
+          ">
+            +
+          </div>
+        `,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+              })
+            }
+          >
+            <Popup>
+              <strong>New POI (not added yet)</strong>
+              <br />
+              {pendingPoi.name}
+            </Popup>
+          </Marker>
         )}
 
         {/* Show user's current location with pulsing blue dot */}
