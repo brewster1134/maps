@@ -21,7 +21,7 @@ export const RouteResult: React.FC<RouteResultProps> = ({
       </p>
       <p>Time: {Math.round(route.route.trip.summary.time / 60)} minutes</p>
       <p>Stops: {route.optimizedOrder?.length || poisCount}</p>
-      <p className='route-saved'>✓ Order saved to optimized_pois.json</p>
+      <p className='route-saved'>✓ Optimized Route Saved~</p>
     </div>
   );
 };
