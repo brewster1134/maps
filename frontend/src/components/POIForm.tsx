@@ -52,21 +52,21 @@ export const POIForm: React.FC<POIFormProps> = ({
           onChange={(e) => onFieldChange('name', e.target.value)}
           placeholder='POI Name'
           required
-          className='form-input'
+          className='form-input hidden'
         />
         <input
           value={poi.lat}
           onChange={(e) => onFieldChange('lat', e.target.value)}
           placeholder='Latitude'
           required
-          className='form-input'
+          className='form-input hidden'
         />
         <input
           value={poi.lng}
           onChange={(e) => onFieldChange('lng', e.target.value)}
           placeholder='Longitude'
           required
-          className='form-input'
+          className='form-input hidden'
         />
         <textarea
           value={poi.notes}

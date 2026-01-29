@@ -90,26 +90,28 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
         )}
       </div>
 
-      {/* Round Trip Checkbox */}
-      <label className='checkbox-label'>
-        <input
-          type='checkbox'
-          checked={roundTrip}
-          onChange={(e) => onRoundTripChange(e.target.checked)}
-        />
-        Round trip
-      </label>
+      <div className='trip-settings-ctas'>
+        {/* Round Trip Checkbox */}
+        <label className='checkbox-label'>
+          <input
+            type='checkbox'
+            checked={roundTrip}
+            onChange={(e) => onRoundTripChange(e.target.checked)}
+          />
+          Round trip
+        </label>
 
-      {/* Reverse Round Trip Button */}
-      {roundTrip && pois.length > 0 && (
-        <button
-          onClick={onReverseRoute}
-          disabled={loading || isOptimizationStale}
-          className='reverse-route-btn'
-        >
-          Reverse Route
-        </button>
-      )}
+        {/* Reverse Round Trip Button */}
+        {roundTrip && pois.length > 0 && (
+          <button
+            onClick={onReverseRoute}
+            disabled={loading || isOptimizationStale}
+            className='reverse-route-btn'
+          >
+            Reverse Route
+          </button>
+        )}
+      </div>
 
       {/* Destination */}
       {!roundTrip && (

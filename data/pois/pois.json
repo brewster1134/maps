@@ -4,60 +4,40 @@
     "name": "Big Sur",
     "lat": 36.2704,
     "lng": -121.8081,
-    "type": "coast",
-    "description": "Scenic drive along the Pacific Ocean",
-    "createdAt": "2026-01-25T08:02:00.000Z",
-    "sequence": 1,
-    "lastOptimized": "2026-01-27T22:39:34.624Z",
-    "fullyOptimized": true
+    "notes": "Scenic drive along the Pacific Ocean",
+    "createdAt": "2026-01-25T08:02:00.000Z"
   },
   {
     "id": "5",
     "name": "Santa Monica Pier",
     "lat": 34.01,
     "lng": -118.4962,
-    "type": "landmark",
-    "description": "Iconic pier with rides and restaurants",
-    "createdAt": "2026-01-25T08:04:00.000Z",
-    "sequence": 2,
-    "lastOptimized": "2026-01-27T22:39:34.624Z",
-    "fullyOptimized": true
+    "notes": "Iconic pier with rides and restaurants",
+    "createdAt": "2026-01-25T08:04:00.000Z"
   },
   {
     "id": "4",
     "name": "Joshua Tree National Park",
     "lat": 33.8734,
     "lng": -115.901,
-    "type": "park",
-    "description": "Desert landscapes and rock formations",
-    "createdAt": "2026-01-25T08:03:00.000Z",
-    "sequence": 3,
-    "lastOptimized": "2026-01-27T22:39:34.624Z",
-    "fullyOptimized": true
+    "notes": "Desert landscapes and rock formations",
+    "createdAt": "2026-01-25T08:03:00.000Z"
   },
   {
     "id": "1",
     "name": "Yosemite National Park",
     "lat": 37.8651,
     "lng": -119.5383,
-    "type": "park",
-    "description": "Famous waterfalls and giant sequoias",
-    "createdAt": "2026-01-25T08:00:00.000Z",
-    "sequence": 4,
-    "lastOptimized": "2026-01-27T22:39:34.624Z",
-    "fullyOptimized": true
+    "notes": "Famous waterfalls and giant sequoias",
+    "createdAt": "2026-01-25T08:00:00.000Z"
   },
   {
     "id": "2",
     "name": "Lake Tahoe",
     "lat": 39.0968,
     "lng": -120.0324,
-    "type": "lake",
-    "description": "Great for swimming and hiking",
-    "createdAt": "2026-01-25T08:01:00.000Z",
-    "sequence": 5,
-    "lastOptimized": "2026-01-27T22:39:34.624Z",
-    "fullyOptimized": true
+    "notes": "Great for swimming and hiking",
+    "createdAt": "2026-01-25T08:01:00.000Z"
   },
   {
     "id": "1769576263561",

@@ -40,13 +40,14 @@
   margin-top: 4px;
 }
 
-.checkbox-label {
-  display: block;
-  margin-bottom: 12px;
-  cursor: pointer;
-}
-
 .checkbox-label input[type='checkbox'] {
   margin-right: 6px;
   cursor: pointer;
+}
+
+.trip-settings-ctas {
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
