@@ -76,7 +76,7 @@ export const POIForm: React.FC<POIFormProps> = ({
         />
         <button
           type='submit'
-          className='submit-button'
+          className='branded'
           disabled={!poi.lat || !poi.lng}
         >
           {poi.name ? `Add ${poi.name}` : 'Search for POI'}

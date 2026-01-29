@@ -1,37 +1,24 @@
 .matrix-status {
   margin-bottom: 20px;
   padding: 12px;
-  background: #ddd;
   border-radius: 0.5rem;
+  background: #d4edda;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &--ready {
+    background: #d4edda;
+  }
+
+  &--warning {
+    background: #856404;
+  }
 }
 
 .matrix-info {
   margin-bottom: 8px;
-}
-
-.matrix-warning {
-  color: #856404;
-  margin-bottom: 8px;
-}
-
-.build-button {
-  width: 100%;
-  padding: 8px;
-  background: #ffc107;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.build-button:hover {
-  background: #e0a800;
-}
-
-.build-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
 }
 
 .matrix-building {

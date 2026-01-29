@@ -7,10 +7,28 @@ body {
   font-family: Helvetica;
 }
 
-button:disabled,
-button:disabled:hover {
-  background-color: lightgray;
-  cursor: not-allowed;
+button {
+  cursor: pointer;
+}
+
+button.branded {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  font-weight: bold;
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background: #0056b3;
+  }
 }
 
 .hidden {
@@ -57,25 +75,4 @@ button:disabled:hover {
   color: #856404;
   border-radius: 0.5rem;
   text-align: center;
-}
-
-/* Optimize button */
-.optimize-button {
-  width: 100%;
-  padding: 12px;
-  background: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 0.5rem;
-  font-weight: bold;
-}
-
-.optimize-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.optimize-button:hover:not(:disabled) {
-  background: #0056b3;
 }

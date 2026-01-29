@@ -460,6 +460,7 @@ const App: React.FC = () => {
         {/* POI List */}
         <div className='section'>
           <POIList
+            route={route}
             pois={pois}
             optimizedTrip={optimizedTrip}
             onDelete={handleDeletePoi}
@@ -477,7 +478,7 @@ const App: React.FC = () => {
 
         {/* Optimize Button */}
         <button
-          className='optimize-button'
+          className='branded'
           onClick={handleOptimizeTrip}
           disabled={
             loading ||
@@ -489,9 +490,6 @@ const App: React.FC = () => {
         >
           {loading ? 'Optimizing...' : `Optimize Trip (${pois.length} POIs)`}
         </button>
-
-        {/* Route Result */}
-        <RouteResult route={route} poisCount={pois.length} />
       </div>
 
       {/* MAP */}

@@ -15,39 +15,42 @@ export const MatrixStatus: React.FC<MatrixStatusProps> = ({
 }) => {
   if (!status) return null;
 
+  const isComplete = status.missingPairs === 0;
+
   return (
-    <div className='matrix-status'>
-      <h3>Distance Calculations</h3>
-      <div className='matrix-info'>
-        <strong>Status:</strong>
-        {`${status.calculatedPairs}/${status.totalPairs} pairs (${status.percentComplete}%)`}
+    <div
+      className={`matrix-status ${
+        isComplete ? 'matrix-status--ready' : 'matrix-status--pending'
+      }`}
+    >
+      <div className='matrix-status-info'>
+        {isComplete ? (
+          <span>✓ Route is ready to optimize</span>
+        ) : (
+          <span>Distance calculated: {status.percentComplete}%</span>
+        )}
       </div>
 
-      {status.missingPairs > 0 && !building && (
+      {!isComplete && !building && (
         <>
-          <div className='matrix-warning'>
-            ⚠️ {status.missingPairs} distances need to be calculated
+          <div className='matrix-status-warning'>
+            {status.missingPairs} routes remain
           </div>
-          <button onClick={onBuildClick} className='build-button'>
-            Build Distance Matrix
+          <button onClick={onBuildClick} className='branded'>
+            Calculate remaining routes
           </button>
         </>
       )}
 
       {building && (
-        <div className='matrix-building'>
-          <strong>⏳ Building matrix...</strong> This may take a while for many
-          POIs.
+        <div className='matrix-status-building'>
+          Preparing route... please wait
         </div>
       )}
 
-      {status.missingPairs === 0 && !building && (
-        <div className='matrix-complete'>✓ Matrix complete!</div>
-      )}
-
       {status.lastUpdated && (
-        <div className='matrix-timestamp'>
-          Last updated: {new Date(status.lastUpdated).toLocaleString()}
+        <div className='matrix-status-timestamp'>
+          Last optimized: {new Date(status.lastUpdated).toLocaleString()}
         </div>
       )}
     </div>

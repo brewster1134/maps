@@ -1,8 +1,10 @@
 import React from 'react';
-import { POI, OptimizedTrip } from '../types';
+import { POI, OptimizedTrip, type RouteData } from '../types';
 import '../styles/POIList.scss';
+import { RouteResult } from './RouteResult';
 
 interface POIListProps {
+  route: RouteData | null;
   pois: POI[];
   optimizedTrip: OptimizedTrip | null;
   onDelete: (id?: string) => void;
@@ -10,6 +12,7 @@ interface POIListProps {
 
 export const POIList: React.FC<POIListProps> = ({
   pois,
+  route,
   optimizedTrip,
   onDelete,
 }) => {
@@ -17,9 +20,11 @@ export const POIList: React.FC<POIListProps> = ({
     <div className='poi-list'>
       <h3>POIs ({pois.length})</h3>
       {optimizedTrip && (
-        <div className='optimization-timestamp'>
-          {`✓ Trip optimized on ${new Date(optimizedTrip.lastOptimized).toLocaleString()}`}
-        </div>
+        <RouteResult
+          route={route}
+          poisCount={pois.length}
+          lastOptimized={optimizedTrip?.lastOptimized}
+        />
       )}
       <div className='poi-list-scroll'>
         {pois.map((poi) => (
