@@ -1,5 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { loadPOIs, savePOIs, loadOptimizedTrip } from '../utils/storage.js';
+import {
+  loadPOIs,
+  savePOIs,
+  loadOptimizedTrip,
+  saveOptimizedTrip,
+} from '../utils/storage.js';
 import { initializeMissingMatrixEntries } from '../services/matrix.js';
 import { POI, type OptimizedPOI } from '../types/index.js';
 
@@ -88,6 +93,49 @@ router.post('/pois', async (req: Request, res: Response) => {
   await initializeMissingMatrixEntries(pois);
 
   res.json(newPOI);
+});
+
+/**
+ * POST /api/pois-reverse
+ * Reverse the optimized route sequence
+ */
+router.post('/pois-reverse', async (_req: Request, res: Response) => {
+  try {
+    const optimizedTrip = await loadOptimizedTrip();
+
+    if (
+      !optimizedTrip ||
+      !optimizedTrip.optimizedOrder ||
+      optimizedTrip.optimizedOrder.length === 0
+    ) {
+      return res
+        .status(404)
+        .json({ error: 'No optimized route found to reverse' });
+    }
+
+    // Reverse the POI array and renumber sequences
+    const reversedOrder = [...optimizedTrip.optimizedOrder]
+      .reverse()
+      .map((poi, index) => ({
+        ...poi,
+        sequence: index + 1,
+      }));
+
+    // Create reversed trip
+    const reversedTrip = {
+      ...optimizedTrip,
+      optimizedOrder: reversedOrder,
+      lastOptimized: new Date().toISOString(),
+    };
+
+    // Save it
+    await saveOptimizedTrip(reversedTrip);
+
+    res.json(reversedTrip);
+  } catch (error) {
+    console.error('Error reversing route:', error);
+    res.status(500).json({ error: 'Failed to reverse route' });
+  }
 });
 
 /**

@@ -29,6 +29,7 @@ import {
   buildMatrix,
   fetchOptimizedTrip,
   optimizeTrip as optimizeTripAPI,
+  reverseOptimizedRoute,
   searchLocation,
 } from './services/api';
 import { useDebounce } from './utils/hooks';
@@ -168,7 +169,28 @@ const App: React.FC = () => {
   const handleDeletePoi = async (id?: string) => {
     if (!id) return;
     await deletePOI(id);
+    setOptimizedTrip(null);
     loadPois();
+  };
+
+  const handleReverseRoute = async () => {
+    setLoading(true);
+    try {
+      const reversedTrip = await reverseOptimizedRoute();
+
+      setOptimizedTrip(reversedTrip);
+
+      // Reload POIs so sequences update
+      await loadPois();
+
+      // Clear any existing rendered route
+      setRoute(null);
+    } catch (err) {
+      console.error('Failed to reverse route', err);
+      alert('Failed to reverse route');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ---------- GEOCODING ----------
@@ -340,6 +362,9 @@ const App: React.FC = () => {
         {/* Trip Settings */}
         <div className='section'>
           <TripSettings
+            isOptimizationStale={isOptimizationStale()}
+            pois={pois}
+            loading={loading}
             origin={origin}
             destination={destination}
             roundTrip={roundTrip}
@@ -349,6 +374,7 @@ const App: React.FC = () => {
             destinationResults={destinationResults}
             showOriginAutocomplete={showOriginAutocomplete}
             showDestinationAutocomplete={showDestinationAutocomplete}
+            onReverseRoute={handleReverseRoute}
             onOriginSearchChange={setOriginSearch}
             onDestinationSearchChange={setDestinationSearch}
             onOriginFocus={() =>

@@ -30,30 +30,6 @@ src/
 - **`distance_matrix.json`** - Cached pairwise distances (location-based keys)
 - **`optimized_pois.json`** - Current trip state with sequence numbers
 
-## API Endpoints
-
-### POIs
-
-- `GET /api/pois` - Get all POIs (normalized)
-- `GET /api/pois-with-sequence` - Get POIs with sequence numbers
-- `POST /api/pois` - Add new POI
-- `PUT /api/pois/:id` - Update POI
-- `DELETE /api/pois/:id` - Delete POI
-
-### Matrix
-
-- `GET /api/matrix-status` - Get matrix completeness status
-- `POST /api/build-matrix` - Build distance matrix (background)
-
-### Optimization
-
-- `GET /api/optimized-trip` - Get current optimized trip state
-- `POST /api/optimize-trip` - Optimize trip with origin/destination
-
-### Geocoding
-
-- `GET /api/geocode?query=...` - Search for locations
-
 ## Development
 
 ```bash

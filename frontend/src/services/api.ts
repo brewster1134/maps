@@ -76,6 +76,20 @@ export async function optimizeTrip(params: {
   return res.json();
 }
 
+// ---------- OPTIMIZATION ENDPOINTS ----------
+export async function reverseOptimizedRoute(): Promise<OptimizedTrip> {
+  const res = await fetch(`${API_URL}/pois-reverse`, {
+    method: 'POST',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Failed to reverse route');
+  }
+
+  return res.json();
+}
+
 // ---------- GEOCODING ENDPOINTS ----------
 export async function searchLocation(query: string): Promise<GeoResult[]> {
   const res = await fetch(

@@ -1,51 +1,59 @@
 import React from 'react';
-import { Location, GeoResult } from '../types';
+import { Location, GeoResult, type POI } from '../types';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
 import '../styles/TripSettings.scss';
 
 interface TripSettingsProps {
-  origin: Location | null;
   destination: Location | null;
-  roundTrip: boolean;
-  originSearch: string;
-  destinationSearch: string;
-  originResults: GeoResult[];
   destinationResults: GeoResult[];
-  showOriginAutocomplete: boolean;
+  destinationSearch: string;
+  isOptimizationStale: boolean;
+  loading: boolean;
+  origin: Location | null;
+  originResults: GeoResult[];
+  originSearch: string;
+  pois: POI[];
+  roundTrip: boolean;
   showDestinationAutocomplete: boolean;
-  onOriginSearchChange: (value: string) => void;
-  onDestinationSearchChange: (value: string) => void;
-  onOriginFocus: () => void;
-  onDestinationFocus: () => void;
-  onOriginBlur: () => void;
+  showOriginAutocomplete: boolean;
   onDestinationBlur: () => void;
-  onOriginSelect: (result: GeoResult) => void;
-  onDestinationSelect: (result: GeoResult) => void;
-  onOriginClear: () => void;
   onDestinationClear: () => void;
+  onDestinationFocus: () => void;
+  onDestinationSearchChange: (value: string) => void;
+  onDestinationSelect: (result: GeoResult) => void;
+  onOriginBlur: () => void;
+  onOriginClear: () => void;
+  onOriginFocus: () => void;
+  onOriginSearchChange: (value: string) => void;
+  onOriginSelect: (result: GeoResult) => void;
+  onReverseRoute: () => void;
   onRoundTripChange: (checked: boolean) => void;
 }
 
 export const TripSettings: React.FC<TripSettingsProps> = ({
-  origin,
   destination,
-  roundTrip,
-  originSearch,
-  destinationSearch,
-  originResults,
   destinationResults,
-  showOriginAutocomplete,
+  destinationSearch,
+  isOptimizationStale,
+  loading,
+  origin,
+  originResults,
+  originSearch,
+  pois,
+  roundTrip,
   showDestinationAutocomplete,
-  onOriginSearchChange,
-  onDestinationSearchChange,
-  onOriginFocus,
-  onDestinationFocus,
-  onOriginBlur,
+  showOriginAutocomplete,
   onDestinationBlur,
-  onOriginSelect,
-  onDestinationSelect,
-  onOriginClear,
   onDestinationClear,
+  onDestinationFocus,
+  onDestinationSearchChange,
+  onDestinationSelect,
+  onOriginBlur,
+  onOriginClear,
+  onOriginFocus,
+  onOriginSearchChange,
+  onOriginSelect,
+  onReverseRoute,
   onRoundTripChange,
 }) => {
   return (
@@ -91,6 +99,17 @@ export const TripSettings: React.FC<TripSettingsProps> = ({
         />
         Round trip
       </label>
+
+      {/* Reverse Round Trip Button */}
+      {roundTrip && pois.length > 0 && (
+        <button
+          onClick={onReverseRoute}
+          disabled={loading || isOptimizationStale}
+          className='reverse-route-btn'
+        >
+          Reverse Route
+        </button>
+      )}
 
       {/* Destination */}
       {!roundTrip && (
